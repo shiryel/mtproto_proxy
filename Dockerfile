@@ -1,6 +1,6 @@
 # Based on https://github.com/erlang/docker-erlang-example
 
-FROM erlang:21-alpine as builder
+FROM erlang:alpine as builder
 
 RUN apk add --no-cache git
 
@@ -17,13 +17,12 @@ RUN if [ ! -f config/prod-vm.args ]; then cp config/vm.args.example config/prod-
 
 RUN rebar3 as prod release
 
-FROM erlang:21-alpine
+FROM erlang:alpine
 RUN apk add --no-cache openssl && \
-    apk add --no-cache ncurses-libs && \
-    apk add --no-cache dumb-init
+    apk add --no-cache ncurses-libs
 
 RUN mkdir -p /opt /var/log/mtproto-proxy
 COPY start.sh /bin/start.sh
 COPY --from=builder /build/mtproto_proxy/_build/prod/rel/mtp_proxy /opt/mtp_proxy
 
-ENTRYPOINT ["/usr/bin/dumb-init", "--", "/bin/start.sh"]
+ENTRYPOINT ["/bin/start.sh"]
