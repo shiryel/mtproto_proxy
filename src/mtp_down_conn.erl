@@ -286,7 +286,11 @@ handle_rpc({close_ext, ConnId}, St) ->
             St1
     end;
 handle_rpc({simple_ack, ConnId, Confirm}, S) ->
-    up_send({simple_ack, self(), Confirm}, ConnId, S).
+    up_send({simple_ack, self(), Confirm}, ConnId, S);
+handle_rpc({unknown, Tag, Tail}, S) ->
+    ?log(info, "Unknown packet from backend. Tag ~w, tail: ~w", [Tag, Tail]),
+    S.
+
 
 -spec down_send(iodata(), #state{}) -> {ok, #state{}}.
 down_send(Packet, #state{sock = Sock, codec = Codec, dc_id = DcId} = St) ->
@@ -346,7 +350,7 @@ build_backpressure_conf(UpstreamsPerDownstream, BpConf) ->
         orelse error({invalid_bytes_per_upstream, PacketsPerUpstream}),
     {PacketsTotal, BytesTotal, PacketsPerUpstream, BytesPerUpstream}.
 
-%% Bumb counters of non-acked packets
+%% Bump counters of non-acked packets
 non_ack_bump(Upstream, Size, #state{non_ack_count = Cnt,
                                     non_ack_bytes = Oct,
                                     upstreams = Ups} = St) ->
